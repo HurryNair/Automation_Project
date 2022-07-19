@@ -54,6 +54,29 @@ aws s3 \
 cp /tmp/${myname}-httpd-logs-${timestamp}.tar \
 s3://${s3_bucket}/${myname}-httpd-logs-${timestamp}.tar
 
+# Ensure that your script checks for the presence of the inventory.html file in /var/www/html/; if not found, creates it
+echo "Ensuring log archive inventory exits"
 
+if [ -e /var/www/html/inventory.html ]
+then
+        echo "Log Archive inventory exists"
+else
+		echo "Log Archive inventory does not exist. Creating inventory file..."
+        touch /var/www/html/inventory.html
+        echo "<b>Log Type &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Time Created &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Type &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Size</b>" >> /var/www/html/inventory.html
+		echo "Log Archive inventory created"
+fi
 
+echo "Adding current archive details to inventory"
+echo "<br>httpd-logs &nbsp;&nbsp;&nbsp;&nbsp; ${timestamp} &nbsp;&nbsp;&nbsp;&nbsp; tar &nbsp;&nbsp;&nbsp;&nbsp; `du -h /tmp/${myname}-httpd-logs-${timestamp}.tar |  sed -e 's/\s.*$//'`" >> /var/www/html/inventory.html
 
+echo "Ensuring cron job exits"
+if [ -e /etc/cron.d/automation ]
+then
+        echo "Cron job exists"
+else
+		echo "Cron job does not exist, creating one..."
+        touch /etc/cron.d/automation
+        echo "0 0 * * * root /root/Automation_Project/automation.sh" > /etc/cron.d/automation
+        echo "Cron job created"
+fi
